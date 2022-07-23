@@ -289,6 +289,7 @@ void printResult(Board *b, Point p) {
 		puts("║");
 	}
 
+	free(o);
 	printf("╚");
 	for (x = 0; x < b->s.x; ++x)
 		printf("═");
@@ -340,7 +341,8 @@ int main() {
 	}
 
 FOUND:
-	moveout(&cursorsNext, &cursors);
+	freeList(&cursorsNext);
+	freeList(&cursors);
 	printResult(&b, cursor);
 	printBacktrace(&b, cursor);
 }
