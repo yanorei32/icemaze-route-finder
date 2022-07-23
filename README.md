@@ -117,6 +117,7 @@ $ ./finder < example.0.txt
 |14|11|Cell     |
 | 4|11|Cell     |
 | 4| 1|Start    |
+$ 
 ```
 
 </details>
