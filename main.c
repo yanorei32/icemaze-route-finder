@@ -191,6 +191,111 @@ void printBacktrace(Board *b, Point p) {
 	}
 }
 
+void swap(int *a, int *b) {
+	*a = *a ^ *b;
+	*b = *b ^ *a;
+	*a = *a ^ *b;
+}
+
+char* cellTypeToShortS(CellType t) {
+	switch (t) {
+		case Blank: return " ";
+		case Wall: return "#";
+		case Start: return "S";
+		case Goal: return "G";
+	}
+}
+
+typedef enum {
+	TopHand		= 1 << 0,
+	RightHand	= 1 << 1,
+	BottomHand	= 1 << 2,
+	LeftHand	= 1 << 3,
+} BoxOverrideState;
+
+/* http://k-maeda.la.coocan.jp/code/uni/uni068.html */
+char *BoxOverrideChars[] = {
+	" ", /* L B R T */
+	"╵", /* 0 0 0 1 */
+	"╶", /* 0 0 1 0 */
+	"└", /* 0 0 1 1 */
+	"╷", /* 0 1 0 0 */
+	"│", /* 0 1 0 1 */
+	"┌", /* 0 1 1 0 */
+	"├", /* 0 1 1 1 */
+	"╴", /* 1 0 0 0 */
+	"┘", /* 1 0 0 1 */
+	"─", /* 1 0 1 0 */
+	"┴", /* 1 0 1 1 */
+	"┐", /* 1 1 0 0 */
+	"┤", /* 1 1 0 1 */
+	"┬", /* 1 1 1 0 */
+	"┼", /* 1 1 1 1 */
+};
+
+void printResult(Board *b, Point p) {
+	int x, y, start, end;
+	BoxOverrideState *o;
+	Cell *from, *to;
+
+	o = calloc(sizeof(BoxOverrideState), b->s.x * b->s.y);
+
+#define GETPOS(ARRAY, X, Y) ( ARRAY[b->s.x * Y + X] )
+
+	for (
+		from = getCellP(b, p), to = from->earliest;
+		from->t != Start;
+		from = to, to = from->earliest
+	) {
+		if (from->p.x == to->p.x) {
+			/* vertical line */
+			start = from->p.y;
+			end = to->p.y;
+			if (end < start) swap(&start, &end);
+			GETPOS(o, from->p.x, start) |= BottomHand;
+			for (++start; start < end; ++start)
+				GETPOS(o, from->p.x, start) |= BottomHand | TopHand;
+			GETPOS(o, from->p.x, end) |= TopHand;
+		} else {
+			/* horizontal line */
+			start = from->p.x;
+			end = to->p.x;
+			if (end < start) swap(&start, &end);
+			GETPOS(o, start, from->p.y) |= RightHand;
+			for (++start; start < end; ++start)
+				GETPOS(o, start, from->p.y) |= RightHand | LeftHand;
+			GETPOS(o, end, from->p.y) |= LeftHand;
+		}
+	}
+
+
+	printf("╔");
+	for (x = 0; x < b->s.x; ++x)
+		printf("═");
+	puts("╗");
+
+	for (y = 0; y < b->s.y; ++y) {
+		printf("║");
+		for (x = 0; x < b->s.x; ++x) {
+			switch (getCell(b, x, y)->t) {
+				case Blank:
+					printf("%s", BoxOverrideChars[GETPOS(o, x, y)]);
+					break;
+
+				default:
+					printf("%s", cellTypeToShortS(getCell(b, x, y)->t));
+					break;
+			}
+		}
+		puts("║");
+	}
+
+	printf("╚");
+	for (x = 0; x < b->s.x; ++x)
+		printf("═");
+	puts("╝");
+}
+
 int main() {
 	Board b;
 	Point cursor;
@@ -237,6 +342,6 @@ int main() {
 
 FOUND:
 	moveout(&cursorsNext, &cursors);
-	puts("Route is Found.\n");
+	printResult(&b, cursor);
 	printBacktrace(&b, cursor);
 }
