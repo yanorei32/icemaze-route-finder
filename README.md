@@ -7,11 +7,9 @@ I made this program because I couldn't [solve it](https://twitter.com/bijutsuyar
 ## How to build
 
 ```
-$ make
-cc -Wextra -O3 --std=c99 --pedantic   -c -o main.o main.c
-cc -Wextra -O3 --std=c99 --pedantic   -c -o list.o list.c
-cc  main.o list.o -o finder
-$ 
+git clone https://github.com/yanorei32/icemaze-route-finder
+cd icemaze-route-finder
+make
 ```
 
 ### Additional note
